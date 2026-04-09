@@ -1,8 +1,13 @@
+"""
+Скрипт, который первым аргументом принимает
+название города и выводит текущую погоду.
+"""
 import argparse
-import requests
-from abc import ABC, abstractmethod
-from dotenv import load_dotenv
 import os
+from abc import ABC, abstractmethod
+
+import requests
+from dotenv import load_dotenv
 
 load_dotenv()
 TEMP_SYMBOL = {"metric": "°C", "standard": "K", "imperial": "°F"}
@@ -12,7 +17,7 @@ TEMP_SYMBOL = {"metric": "°C", "standard": "K", "imperial": "°F"}
 parser = argparse.ArgumentParser(
         description = (
             "Скрипт, который первым аргументом принимает "
-            "название города и выводит текущую погоду"
+            "название города и выводит текущую погоду."
             ),
         )
 
