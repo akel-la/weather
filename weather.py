@@ -10,12 +10,18 @@ TEMP_SYMBOL = {"metric": "°C", "standard": "K", "imperial": "°F"}
 # Аргументы командной строки:
 
 parser = argparse.ArgumentParser(
-        description = "Скрипт, который первым аргументом принимает название города и выводит текущую погоду",
+        description = (
+            "Скрипт, который первым аргументом принимает "
+            "название города и выводит текущую погоду"
+            ),
         )
 
 parser.add_argument(
         "city",
-         help = "Первый аргумент командной строки - имя города в верхнем или нижнем регистре.",
+         help = (
+             "Первый аргумент командной строки - имя города"
+             " в верхнем или нижнем регистре."
+             ),
 )
 parser.add_argument(
         "--country",
@@ -55,9 +61,12 @@ class ABCWeatherHandler(ABC):
         """Вызывается при создании любого подкласса, добавляя его в регистр."""
         super().__init_subclass__(**kwargs)
         if cls.URL is None:
-            # По классификации тут TypeError, но вместо него SystemExit, чтобы его 
+            # По классификации тут TypeError, но вместо него SystemExit, чтобы его
             # перехватывали и выводили ошибку без стека вызовов и прочего подобного:
-            raise SystemExit(f"[ОШИБКА АРХИТЕКТУРЫ] Класс {cls.__name__} обязан определить атрибут URL")
+            raise SystemExit(
+                    f"[ОШИБКА АРХИТЕКТУРЫ] Класс {cls.__name__}"
+                    " обязан определить атрибут URL"
+                    )
         cls._registry[cls.__name__] = cls
 
 
@@ -68,7 +77,10 @@ class ABCWeatherHandler(ABC):
 
         handler_class = cls._registry.get(handler_name)
         if not handler_class:
-            raise SystemExit(f"[Ошибка]: Класса {handler_name}, который указан в .env, не реализован.")
+            raise SystemExit(
+                    f"[Ошибка]: Класса {handler_name},"
+                    f" который указан в .env, не реализован."
+                    )
 
         env_key_name = f"{handler_name.upper()}_API_KEY"
         # "" как значение по умолчанию - чтобы не падал при strip, если будет None,
@@ -76,7 +88,10 @@ class ABCWeatherHandler(ABC):
         api_key = os.getenv(env_key_name, "").strip()
 
         if not api_key:
-            raise SystemExit(f"[ОШИБКА]: Не найден API ключ в переменной {env_key_name}")
+            raise SystemExit(
+                    f"[ОШИБКА]: Не найден API ключ"
+                    f" в переменной {env_key_name}"
+                    )
         return handler_class(api_key)
 
     @abstractmethod
@@ -94,18 +109,18 @@ class OpenWeather25Handler(ABCWeatherHandler):
         return {"error": message, "status_code": code}
 
     def get_weather(self, args: dict):
-            
+
         q = f"{args['city']}"
         if args["country"]:
             q = q + f",{args['country']}"
-        
+
         weather_params = {
             "q": q,
             "units": args["units"],
             "lang": args["lang"],
             "appid": self.api_key,
         }
-        
+
         try:
             # timeout - чтобы программа не могла бесконечто ожидать ответа от сервера:
             response = requests.get(self.URL, params = weather_params, timeout = 5)
@@ -118,7 +133,8 @@ class OpenWeather25Handler(ABCWeatherHandler):
 
                 if args["country"] and args["country"].upper() != actual_country:
                     return self._error_response(
-                            f"Город '{args['city']}' не найден в стране '{args['country']}'",
+                            f"Город '{args['city']}' не найден"
+                            f"в стране '{args['country']}'",
                             404
                     )
 
@@ -131,9 +147,13 @@ class OpenWeather25Handler(ABCWeatherHandler):
             # Город / страна не найдены:
             error_msg = data.get("message", "Неизвестная ошибка API")
             return self._error_response(error_msg, response.status_code)
-        
+
         except request.exceptions.Timeout:
-            return self._error_response("Превышено время ожидания ответа от сервера", 500)
+            return self._error_response(
+                    "Превышено время ожидания"
+                    " ответа от сервера",
+                    500
+                    )
         except Exception as e:
             raise SystemExit(f"[ОШИБКА]: Неизвестная ошибка: {e}", 500)
 
@@ -146,9 +166,15 @@ if __name__ == "__main__":
         result = handler.get_weather(args)
 
         if "error" not in result:
-            print(f"В городе {args['city']} сейчас {result['temp']}{result['unit']}, {result['desc']}.")
+            print(
+                f"В городе {args['city']} сейчас {result['temp']}"
+                f"{result['unit']}, {result['desc']}."
+            )
         else:
-            print(f"[Ошибка]:\nКод ошибки: {result['status_code']}\nСообщение: {result['error']}")
+            print(
+                f"[Ошибка]:\nКод ошибки: {result['status_code']}\n"
+                f"Сообщение: {result['error']}"
+                )
     except SystemExit as e:
         print(e)
     except Exception as e:
